@@ -1,0 +1,152 @@
+---
+title: "Rapport phylo-géographique"
+date: "`r Sys.Date()`"
+output: pdf_document
+params:
+  OutputDirectory: "/home/virologie/pipeline_stage/"
+  Reference: "/temp.txt"
+---
+
+```{=tex}
+\section{Introduction}
+
+Ce rapport contient des informations vis à vis de la qualité et des résultats d'un séquençage associé à sa séquence de référence.
+```
+```{r, include = FALSE}
+#General settings
+
+knitr::opts_knit$set(root.dir = getwd())
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+```
+
+```{r}
+#Download libraries
+library(knitr)
+library(seqinr)
+library(dplyr)
+library(scales)
+library(ggplot2)
+library(ggpubr)
+library(tidyr)
+library(stringr)
+library(microseq)
+library(spatstat)
+library(kableExtra)
+source("./functionPlots.R")
+```
+
+```{r}
+# Download datas #
+OutputDirectory <- params$OutputDirectory
+reference <- params$Reference
+## Fastq sequence file ##
+fastqData <- getAllFastqParseTables(OutputDirectory)
+## Sam pattern files ##
+samData <- getAllSamParseTables(OutputDirectory)
+## Coverage file ##
+coverage <- read.table(paste0(OutputDirectory, "/results/Coverage.bed"), sep = "\t")
+colnames(coverage) <- c("sample", "start", "stop", "depth")
+## consensus sequence ##
+seq_consensus <- read.fasta(paste0(OutputDirectory, "/results/Consensus_Sequence/consensus.fa"), as.string = TRUE)
+## variant SNP file ###
+variant <- read.table(paste0(OutputDirectory, "/python_vcf_result.vcf"), sep = "\t")
+```
+
+```{=tex}
+\section{1. Qualité du séquençage}
+
+Cette section traite de la qualité du séquençage des lectures
+
+
+```
+```{r}
+ggarrange(plotlist = plotsSequencingSample(fastqData[[3]], fastqData[[2]]))
+```
+
+\pagebreak
+```{=tex}
+\section{2. Qualité du mapping sur la référence}
+
+Cette section traite de données de qualités générales du mapping des leactures
+```
+```{r fig.height = 7, fig.width=7}
+ggarrange(plotsAlignmentMap(samData[[1]]),
+plotReadMapQuality(samData[[2]]),
+plotReadMapSeqScore(samData[[4]]))
+```
+
+```{r}
+plotReadMapLength(samData[[3]])
+```
+
+\pagebreak
+```{=tex}
+\subsection{2.1. Couverture et profondeur du séquençage}
+
+Cette section traite de la profondeur et de la couverture du séquençage
+
+```
+```{r}
+##Coverage plot
+plotCoverage(coverage)
+```
+
+```{=tex}
+\subsection{2.2. Régions séquencées indéterminées}
+
+Ce graphique montre en rouge les régions indeterminées, c'est à dire couverte par aucune séquence
+
+```
+```{r fig.height = 2, fig.width = 5}
+# Rectangular plot that shows regions with 0 coverage
+unknownRegions(seq_consensus)
+```
+
+\pagebreak
+```{=tex}
+\section{3. Analyse du taux de GC}
+
+Cette section analyse le taux de GC des lectures et les compare à celui de la référence
+
+
+```
+```{r}
+plots <- plotGC(fastqData[[1]], reference)  
+plots[[1]]
+```
+
+```{r}
+plots[[2]] %>% kable(caption = "Statistics comparison between reads and reference") %>% kable_paper(latex_options = c("hold_position"))
+```
+
+```{r}
+plots[[3]] %>% kable(caption = "Kolmogorov-Smirnov test results") %>% kable_paper(latex_options = c("hold_position"))
+```
+
+```{r}
+plots[[4]] %>% kable(caption = "Stats from Student test") %>% kable_paper(latex_options = c("hold_position"))
+```
+
+```{r}
+plots[[5]] %>% kable(caption = "Confidence interval from Student test") %>% kable_paper(latex_options = c("HOLD_position"))
+```
+
+\pagebreak
+```{=tex}
+\section{4. Variants détectés}
+
+Cette section est composée d'un graphe affichant les lieux ou des variants ont 
+été trouvés, acompagné d'un tableau contenant de nombreux détails
+
+
+```
+```{r fig.height = 2, fig.width = 8}
+content <- vcfAnalysis(variant, reference) 
+content[[2]] 
+```
+
+```{r}
+content[[1]] %>% kable(caption = "Variants detected") %>% kable_paper(latex_options = c("hold_position"))
+```
