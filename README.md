@@ -31,7 +31,9 @@ First, you need to move to the folder containing the project: ```cd Sequencing-R
 Then you need to launch the script: <br>
 ```bash pipeline_report_script.sh -r [referenceFilePath] -s [fastqFile] -o [OutputFolder] -c [CpuNumber]```
 
-[referenceFilePath]: The path of the fasta reference file
-[fastqFile]: The path of the fastqFile from the sequencer
-[OutputFolder]: The output folder that will contain the created files along with the
-[CpuNumber]: The number of cpu used for the scripts (optional, default is 1)
+[referenceFilePath]: The path of the fasta reference file<br>
+[fastqFile]: The path of the fastqFile from the sequencer<br>
+[OutputFolder]: The output folder that will contain the created files along with the<br>
+[CpuNumber]: The number of cpu used for the scripts (optional, default is 1)<br>
+
+The pdf and html reports are in the output folder
