@@ -122,4 +122,5 @@ python "$PWD/python/filter_vcf.py" -r -b "$Output_Dir/results/Bam_Sam/bamAlignme
 # Script analyse python fastq
 python "$PWD/python/parse_fastq.py" -i "$source" -o "$Output_Dir/python_parse_fastq_results" -c "$CPU_Number"
 
+# Generate report
 Rscript "${PWD}/R/Render_report.R" -s "${Output_Dir}" -n Rapport -p "${PWD}/R/Rapport_sequencage.Rmd" -w "${PWD}/R/Rapport_sequencage_html.Rmd" -r "$reference" 

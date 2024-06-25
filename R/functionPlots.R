@@ -245,6 +245,8 @@ plotReadMapSeqScore <- function(readMapSeqScore){
   return(p4)
 }
 
+## Functions to create plots from coverage data --------------------------------
+
 plotCoverage <- function(coverage){
   #' A function creating a plot showing the coverage of each sequences
   #' @param coverage A dataframe describing the coverage of each sequence
@@ -322,6 +324,8 @@ unknownRegions <- function(consensusSequence){
   
   return(plot)
 }
+
+## Functions to create plots and tables from GC content ------------------------
 
 plotGC <- function(gcTable, reference){
   #' Creates a bar plot from the gc scores along with a normal law based on reference
@@ -411,6 +415,7 @@ getMeanGC <- function(sequence){
   return(moyenne)
 }
 
+# Function to create plots and tables from variant calling ---------------------
 vcfAnalysis <- function(variants, reference){
   
   # Creation of the table containing all the raw readable data
