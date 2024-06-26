@@ -86,13 +86,22 @@ samtools faidx "$reference"
 # script docker: 
 source=$2 docker pull google/deepvariant
 
+# Get the folder from reference
+refFolder=$(dirname "$reference")
+tempPath="$PWD"
+cd "$refFolder" || return
+refFolder="$PWD"
+cd "$tempPath" || return
+
+refFile=$(basename "$reference")
+
 ## script docker deepvariant --------------------------------------------------  
 sudo docker run \
- -v "${PWD}":"/input" \
+ -v "${refFolder}":"/input" \
  -v "${Output_Dir}":"/output" \
  google/deepvariant /opt/deepvariant/bin/run_deepvariant \
  --model_type ONT_R104 \
- --ref=/input/"$reference" \
+ --ref=/input/"$refFile" \
  --reads=/output/results/Bam_Sam/bamAlignment_sorted.bam \
  --output_vcf=/output/results/deepvariant_results/results.output.vcf.gz \
  --output_gvcf=/output/results/deepvariant_results/results.output.g.vcf.gz \
@@ -111,7 +120,7 @@ bedtools genomecov -bga -ibam "$Output_Dir/results/Bam_Sam/bamAlignment_sorted.b
 bedtools genomecov -bga -ibam "$Output_Dir/results/Bam_Sam/bamAlignment_sorted.bam" > "$Output_Dir/results/Coverage.bed"
 
 # script consensus (replaces no coverage zones by N)
-bcftools consensus -m "${Output_Dir}/results/noCoverageZones.bed" -f "$PWD/ref/cmv_ref_ul54.fasta" "${Output_Dir}/results/deepvariant_results/results.output.vcf.gz" > "${Output_Dir}/results/Consensus_Sequence/consensus.fa"
+bcftools consensus -m "${Output_Dir}/results/noCoverageZones.bed" -f "$reference" "${Output_Dir}/results/deepvariant_results/results.output.vcf.gz" > "${Output_Dir}/results/Consensus_Sequence/consensus.fa"
 
 # Script analyse python sam
 python "$PWD/python/parse_sam.py" -i "$Output_Dir/results/Bam_Sam/alignment.sam" -o "$Output_Dir/python_parse_sam_results" -c "$CPU_Number"
