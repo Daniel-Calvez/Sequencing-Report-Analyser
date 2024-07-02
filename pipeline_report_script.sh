@@ -14,7 +14,7 @@ Help()
 }
 
 ### Docker and conda need to be installed ###
-while getopts ":h:r:s:o:c:" option; do
+while getopts "hr:s:o:c:" option; do
    case $option in
         h) # display Help
             Help
