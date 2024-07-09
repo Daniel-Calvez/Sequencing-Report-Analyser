@@ -1,0 +1,163 @@
+---
+title: "Rapport phylo-géographique"
+date: "`r Sys.Date()`"
+output: 
+  html_document: default
+params:
+  OutputDirectory: "/home/virologie/pipeline_stage/"
+  Reference: "/temp.txt"
+---
+
+Ce rapport contient des informations vis à vis de la qualité et des résultats d'un séquençage associé à sa séquence de référence.
+
+```{r, include = FALSE}
+#General settings
+
+knitr::opts_knit$set(root.dir = getwd())
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+```
+
+```{r}
+#Download libraries
+library(knitr)
+library(seqinr)
+library(dplyr)
+library(scales)
+library(ggplot2)
+library(ggpubr)
+library(tidyr)
+library(stringr)
+library(microseq)
+library(spatstat)
+library(plotly)
+library(DT)
+source("./functionPlots.R")
+source("./functionPlotsMulti.R")
+```
+
+```{r}
+# Download datas #
+OutputDirectory <- params$OutputDirectory
+reference <- params$Reference
+## Fastq sequence file ##
+fastqData <- getAllFastqParseTables(OutputDirectory)
+## Sam pattern files ##
+samData <- getAllSamParseTables(OutputDirectory)
+## Coverage file ##
+coverage <- read.table(paste0(OutputDirectory, "/results/Coverage.bed"), sep = "\t")
+colnames(coverage) <- c("sample", "start", "stop", "depth")
+## consensus sequence ##
+seq_consensus <- read.fasta(paste0(OutputDirectory, "/results/Consensus_Sequence/consensus.fa"), as.string = TRUE)
+## variant SNP file ###
+variant <- read.table(paste0(OutputDirectory, "/python_vcf_result.vcf"), sep = "\t")
+```
+
+# 1. Qualité du séquençage {.tabset}
+
+Cette section traite de la qualité du séquençage des lectures
+
+## Score qualité des reads
+
+```{r}
+samplePlots <- plotsSequencingSample(fastqData[[3]], fastqData[[2]])
+ggplotly(samplePlots[[1]])
+```
+
+## Longueur des reads
+
+```{r}
+ggplotly(samplePlots[[2]])
+```
+
+# 2. Qualité du mapping sur la référence {.tabset}
+
+Cette section traite de données de qualités générales du mapping des leactures
+
+## Informations générales
+
+```{r fig.height = 7, fig.width=7}
+ggplotly(plotsAlignmentMap(samData[[1]]))
+ggplotly(plotReadMapQuality(samData[[2]]))
+ggplotly(plotReadMapSeqScore(samData[[4]]))
+```
+
+## Longueurs des reads mappés
+
+Graph de la longueur des reads ou en rouge sont les reads non mappé et en bleu 
+ceux qui le sont
+
+```{r}
+ggplotly(plotReadMapLength(samData[[3]]))
+```
+
+## Couverture et profondeur du séquençage
+
+Cette section traite de la profondeur et de la couverture du séquençage
+
+```{r}
+ggplotly(plotCoverage(coverage))
+```
+
+## Régions séquencées indéterminées
+
+Ce graphique montre en rouge les régions indeterminées, c'est à dire couverte par aucune séquence
+
+```{r fig.height = 2, fig.width = 5}
+# Rectangular plot that shows regions with 0 coverage
+unknownRegions(seq_consensus)
+```
+
+# 3. Analyse du taux de GC {.tabset}
+
+Cette section analyse le taux de GC des lectures et les compare à celui de la référence
+
+## Graphique
+
+```{r}
+plots <- plotGC(fastqData[[1]], reference)  
+ggplotly(plots[[1]])
+```
+
+## Comparaison statistique
+
+```{r}
+datatable(plots[[2]])
+```
+
+## Resultat du test Kolmogorov-Smirnov
+
+```{r}
+datatable(plots[[3]])
+```
+
+## Stats du test Student
+
+```{r}
+datatable(plots[[4]])
+```
+
+## Intervalle de confiance
+
+```{r}
+datatable(plots[[5]])
+```
+
+# 4. Variants détectés {.tabset}
+
+Cette section est composée d'un graphe affichant les lieux ou des variants ont 
+été trouvés, acompagné d'un tableau contenant de nombreux détails
+
+## Graphique
+
+```{r fig.height = 2, fig.width = 8}
+content <- vcfAnalysis(variant, reference) 
+ggplotly(content[[2]])
+```
+
+## Tableaux des mutations
+
+```{r}
+datatable(content[[1]])
+```

@@ -1,0 +1,210 @@
+---
+title: "Rapport phylo-géographique"
+date: "`r Sys.Date()`"
+output: pdf_document
+params:
+  OutputDirectory: "/home/virologie/pipeline_stage/"
+  Reference: "/temp.txt"
+---
+
+```{=tex}
+\section{Introduction}
+
+Ce rapport contient des informations vis à vis de la qualité et des résultats d'un séquençage associé à sa séquence de référence.
+```
+```{r, include = FALSE}
+#General settings
+
+knitr::opts_knit$set(root.dir = getwd())
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+```
+
+```{r}
+#Download libraries
+library(knitr)
+library(seqinr)
+library(dplyr)
+library(scales)
+library(ggplot2)
+library(ggpubr)
+library(tidyr)
+library(stringr)
+library(microseq)
+library(spatstat)
+library(kableExtra)
+source("./functionPlots.R")
+source("./functionPlotsMulti.R")
+```
+
+```{r}
+# Load data #
+OutputDirectory <- params$OutputDirectory
+reference <- params$Reference
+
+listOutputs <- list.dirs(OutputDirectory, full.names = TRUE, recursive = FALSE)
+fastqDataList <- list()
+samDataList <- list()
+coverageList <- list()
+seq_consensusList <- list()
+variantList <- list()
+
+fastqData <- list(data.frame(GC_content = integer(), occurence = integer(), patient = character()),
+                  data.frame(read_length = integer(), occurence = integer(), patient = character()),
+                  data.frame(Seq_score = integer(), occurence = integer(), patient = character())) 
+
+samData <- list(data.frame(read = character(), occurence = integer(), patient = character()),
+                data.frame(Map_score = integer(), occurence = integer(), patient = character()),
+                data.frame(read_length = integer(), mapped = integer(), occurence = integer(), patient = character()),
+                data.frame(Seq_score = integer(), occurence = integer(), patient = character()))
+
+variant <- data.frame(V1 = character(), V2 = integer(), V3 = character(),
+                      V4 = character(), V5 = character(), V6 = integer(), 
+                      V7 = character(), V8 = character(), V9 = character(), 
+                      V10 = character(), patient = character())
+
+patientNumber <- length(listOutputs)
+
+for (outputFolder in listOutputs) {
+  ## Fastq sequence file ##
+  fastqDataList[[length(fastqDataList)+1]]<- 
+    addPatientID(getAllFastqParseTables(outputFolder), basename(outputFolder))
+  
+  ## Sam pattern files ##
+  samDataList[[length(samDataList)+1]]  <- 
+    addPatientID(getAllSamParseTables(outputFolder), basename(outputFolder))
+  
+  ## Coverage file ##
+  coverageList[[length(coverageList)+1]]  <- 
+    read.table(paste0(outputFolder, "/results/Coverage.bed"), sep = "\t")%>%  mutate(patient = basename(outputFolder))
+  
+  colnames(coverageList[[length(coverageList)]])  <- c("sample", "start", "stop", "depth", "patient")
+  
+ 
+  ## consensus sequence ##
+  seq_consensusList[[length(seq_consensusList)+1]]  <- 
+    list(read.fasta(paste0(outputFolder, "/results/Consensus_Sequence/consensus.fa"), as.string = TRUE , seqonly = T), basename(outputFolder))
+
+
+  ## variant VCF file ###
+  variantList[[length(variantList)+1]]  <- 
+    read.table(paste0(outputFolder, "/python_vcf_result.vcf"), sep = "\t") %>% mutate(patient = basename(outputFolder))
+}
+
+fastqData <- combineFastqTables(fastqDataList)
+samData <- combineSamTables(samDataList)
+variant <- combineVariantTables(variantList)
+```
+
+```{=tex}
+\section{1. Qualité du séquençage}
+
+```
+
+```{r}
+if(patientNumber <= 10){
+  
+}
+```
+
+\pagebreak
+```{=tex}
+\section{2. Qualité du mapping sur la référence}
+
+Cette section traite de données de qualités générales du mapping des lectures
+
+```
+```{r fig.height = 7, fig.width=7}
+ggarrange(plotsAlignmentMap(samData[[1]]),
+plotReadMapQuality(samData[[2]]),
+plotReadMapSeqScore(samData[[4]]))
+```
+
+```{r}
+plotReadMapLength(samData[[3]])
+```
+
+\pagebreak
+```{=tex}
+\subsection{2.1. Couverture et profondeur du séquençage}
+
+Cette section traite de la profondeur et de la couverture du séquençage
+
+```
+```{r}
+##Coverage plot
+plotCoverage(coverage)
+```
+
+```{=tex}
+\subsection{2.2. Régions séquencées indéterminées}
+
+Ce graphique montre en rouge les régions indeterminées, c'est à dire couverte par aucune séquence
+
+```
+```{r fig.height = 2, fig.width = 5}
+# Rectangular plot that shows regions with 0 coverage
+unknownRegions(seq_consensus)
+```
+
+\pagebreak
+```{=tex}
+\section{3. Analyse du taux de GC}
+
+Cette section analyse le taux de GC des lectures et les compare à celui de la référence
+
+```
+```{r}
+plots <- plotGC(fastqData[[1]], reference)  
+plots[[1]]
+```
+
+```{r}
+plots[[2]] %>% kable(caption = "Statistics comparison between reads and reference") %>% kable_paper(latex_options = c("hold_position"))
+```
+
+```{r}
+plots[[3]] %>% kable(caption = "Kolmogorov-Smirnov test results") %>% kable_paper(latex_options = c("hold_position"))
+```
+
+```{r}
+plots[[4]] %>% kable(caption = "Stats from Student test") %>% kable_paper(latex_options = c("hold_position"))
+```
+
+```{r}
+plots[[5]] %>% kable(caption = "Confidence interval from Student test") %>% kable_paper(latex_options = c("HOLD_position"))
+```
+
+\pagebreak
+```{=tex}
+\section{4. Variants détectés}
+
+Cette section est composée d'un graphe affichant les lieux ou des variants ont 
+été trouvés, acompagné d'un tableau contenant de nombreux détails
+
+
+```
+```{r fig.height = 2, fig.width = 8}
+content <- vcfAnalysis(variant, reference) 
+content[[2]] 
+```
+
+```{r}
+content[[1]] %>% kable(caption = "Variants detected") %>% kable_paper(latex_options = c("hold_position"))
+```
+
+```{=tex}
+\section{5. Résultats sur plusieurs patients}
+
+Cette section contient des informations sur les résultats sur plusieurs patients
+
+```
+```{=tex}
+\subsection{Tableaux de données}
+
+Cette section est composée d'un graphe affichant les lieux ou des variants ont 
+été trouvés, acompagné d'un tableau contenant de nombreux détails
+
+
+```
