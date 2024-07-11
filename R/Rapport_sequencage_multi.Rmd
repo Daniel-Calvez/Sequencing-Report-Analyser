@@ -65,8 +65,11 @@ variant <- data.frame(V1 = character(), V2 = integer(), V3 = character(),
                       V10 = character(), patient = character())
 
 patientNumber <- length(listOutputs)
-
+patientList <- list()
 for (outputFolder in listOutputs) {
+  
+  patientList[[length(patientList)+1]] <- basename(outputFolder)
+  
   ## Fastq sequence file ##
   fastqDataList[[length(fastqDataList)+1]]<- 
     addPatientID(getAllFastqParseTables(outputFolder), basename(outputFolder))
@@ -103,9 +106,34 @@ variant <- combineVariantTables(variantList)
 ```
 
 ```{r}
-if(patientNumber <= 10){
+fastqGCTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double(), ecarttype = double())
+
+fastqLengthTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double())
+
+fastqScoreTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double())
+
+for(p in patientList){
+  fastqGCTab <- fastqGCTab %>% bind_rows(fastqData[[1]] 
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean( GC_content, occurence),
+                          Mediane = weighted.median(GC_content, occurence), 
+                          ecarttype = sd(GC_content)))
+  fastqLengthTab <- fastqLengthTab %>% bind_rows(fastqData[[2]] 
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean(read_length, occurence),Mediane = weighted.median(read_length, occurence)))
   
+  fastqScoreTab <- fastqScoreTab %>% bind_rows(fastqData[[3]] 
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean(Seq_score, occurence),Mediane = weighted.median(Seq_score, occurence)))
 }
+if(patientNumber <= 10){
+  plots <- fastqQualityPlot(fastqGCTab, fastqLengthTab, fastqScoreTab)
+  ggarrange(plots[[1]], plots[[2]], plots[[3]])
+}
+fastqGCTab %>% kable(caption = "Informations sur le score qualité des patients") %>% kable_paper(latex_options = c("hold_position"))
 ```
 
 \pagebreak
@@ -116,9 +144,46 @@ Cette section traite de données de qualités générales du mapping des lecture
 
 ```
 ```{r fig.height = 7, fig.width=7}
-ggarrange(plotsAlignmentMap(samData[[1]]),
-plotReadMapQuality(samData[[2]]),
-plotReadMapSeqScore(samData[[4]]))
+
+samMapTable <- data.frame(patient = character(),percent = double(), read = character())
+
+
+samMapScoreTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double())
+
+samScoreTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double())
+
+
+for(p in patientList){
+  
+  samMapTable <- samMapTable %>% bind_rows(samData[[1]] %>% filter(patient == p) 
+                 %>% relocate(patient, .before = read)  
+                 %>% filter(read != "total") 
+                 %>% group_by(patient) 
+                 %>% reframe(percent = round(occurence / sum(occurence) * 100, digits = 2), read) 
+  )
+  
+  samMapScoreTab <- samMapScoreTab %>% bind_rows(samData[[2]]
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean(Map_score, occurence),
+                          Mediane = weighted.median(Map_score, occurence)))
+  
+  samScoreTab <- samScoreTab %>% bind_rows(samData[[4]]
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean(Seq_score, occurence),
+                          Mediane = weighted.median(Seq_score, occurence)))
+}
+
+if(patientNumber <= 10){
+  plots <- samMultiPlots(samMapTable, samMapScoreTab, samScoreTab)
+  ggarrange(plots[[1]], plots[[2]], plots[[3]])
+}
+
+samMapTable[,c("patient","percent")] %>% kable(caption = "Informations sur le nombre de reads mappés par patients") %>% kable_paper(latex_options = c("hold_position"))
+samMapScoreTab %>% kable(caption = "Informations sur le score d'alignement par patient") %>% kable_paper(latex_options = c("hold_position"))
+samScoreTab %>% kable(caption = "Informations sur le score qualité des séquences mappées par patient") %>% kable_paper(latex_options = c("hold_position"))
+
 ```
 
 ```{r}

@@ -11,6 +11,8 @@ addPatientID <- function(dataTables, patientName){
   return(dataTables)
 }
 
+
+
 combineFastqTables <- function(listDataTable){
   #' This function aggregate every datatables from fasta information table list 
   #' and do the sum of matching occurences
@@ -94,28 +96,85 @@ combineVariantTables <- function(listDataTable){
   return(resList)
 }
 
-sequenceQualityPlots <- function(fastqData){
+fastqQualityPlot <- function(fastqGCTab, fastqLengthTab,fastqScoreTab){
   #' This generates sequence quality plots for multiple patients
   #' @param fastqData
   #' @return Plots about sequence quality
   
-  # This is a lollipop plot with the mean and median quality score sequence 
-  # Of each patient
-  p1 <- ggplot(fastqData[[1]], aes(x=fastqData[[1]]$patient, y=weighted.mean(fastqData[[1]]$GC_content, fastqData[[1]]$occurence)))+
-    geom_point()+
-    geom_segment(aes(x=fastqData[[1]]$patient, y=weighted.mean(fastqData[[1]]$GC_content, fastqData[[1]]$occurence), xend = 0, yend = weighted.mean(fastqData[[1]]$GC_content, fastqData[[1]]$occurence)))
+  # This generates the mandatory tables for creating the plots
   
+  
+  # This is a lollipop plot with the mean and median quality score sequence 
+  # of each patient
+  p1 <- ggplot(fastqGCTab, aes(x=Moyenne, y=patient))+
+    geom_point()+
+    geom_segment(aes(x=Moyenne, y=patient, 
+                     xend = 0, yend = patient))+
+    labs(x = "Taux de GC moyen",
+         y = "Patient",
+         title = "Taux de GC par patient")
+  
+  p2 <- ggplot(fastqLengthTab, aes(x=Moyenne, y=patient))+
+    geom_point()+
+    geom_segment(aes(x=Moyenne, y=patient, 
+                     xend = 0, yend = patient))+
+    labs(x = "Longueur moyenne",
+         y = "Patient",
+         title = "Longueur des reads par patient")
+  
+  p3 <- ggplot(fastqScoreTab, aes(x=Moyenne, y=patient))+
+    geom_point()+
+    geom_segment(aes(x=Moyenne, y=patient, 
+                     xend = 0, yend = patient))+
+    labs(x = "Score qualité moyen phred",
+         y = "Patient",
+         title = "Score qualité des reads par patient")
+  
+  
+  return(list(p1, p2, p3))
 }
 
-multiReadMapPlot <- function(data){
-  i <- 0
-  plot <- ggplot()
-  for(elem in data){
-    
-    plot <- plot + geom_bar(data = elem[[1]][[1]], aes(x = GC_content, colour = i))
-    i <- i+1
-  }
-  return(plot)
+samMultiPlots <- function(samMapTable, samMapScoreTab, samScoreTab){
+  
+
+  
+  p1 <- ggplot(samMapTable) +
+    # Index the columns on the axis
+    aes(x = patient, y = percent, fill = read) +
+    geom_bar(stat = "identity") +
+    coord_flip() +
+    # Separate mapped from unmapped values
+    scale_fill_manual(values = c("Mapped" = "palegreen4", "No mapped" = "brown3")) +
+    geom_text(aes(label = paste0(percent, "%"), hjust = "center")) +
+    # Legends the graph
+    labs(x = "", y = "",
+         title = "Reads mappés",
+         fill = "") +
+    # Visual modifications (so it can look better)
+    theme(axis.text =  element_blank(),
+          axis.ticks = element_blank(),
+          panel.background = element_rect(fill = 'white', color = 'white'),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          legend.position = "top")
+  
+  p2 <- ggplot(samMapScoreTab, aes(x=Moyenne, y=patient))+
+    geom_point()+
+    geom_segment(aes(x=Moyenne, y=patient, 
+                     xend = 0, yend = patient))+
+    labs(x = "Score d'alignement moyen",
+         y = "Patient",
+         title = "Score d'alignement par patient")
+  
+  p3 <- ggplot(samScoreTab, aes(x=Moyenne, y=patient))+
+    geom_point()+
+    geom_segment(aes(x=Moyenne, y=patient, 
+                     xend = 0, yend = patient))+
+    labs(x = "Score qualité moyen phred des reads mappés",
+         y = "Patient",
+         title = "Score qualité des reads mappés par patient")
+  
+  return(list(p1,p2,p3))
 }
 
 plotsAlignmentMap <- function(alignmentMap){
