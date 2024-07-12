@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.6.20)  12 JUL 2024 12:54
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.6.20)  12 JUL 2024 14:43
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**/home/virologie/pipeline_stage/testOutput2/test.tex
-(/home/virologie/pipeline_stage/testOutput2/test.tex
+**/home/virologie/pipeline_stage/testOutput/test.tex
+(/home/virologie/pipeline_stage/testOutput/test.tex
 LaTeX2e <2024-06-01> patch level 1
 L3 programming layer <2024-05-27>
 (/home/virologie/.TinyTeX/texmf-dist/tex/latex/base/article.cls
@@ -554,75 +554,60 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 88.
 (/home/virologie/.TinyTeX/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-</home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-4-1.pdf, id=4, 469.755pt x 325.215pt>
-File: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-4-1.pdf Graphic file (type pdf)
-<use /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-4-1.pdf>
-Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-4-1.pdf  used on input line 95.
+</home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-4-1.pdf, id=4, 469.755pt x 325.215pt>
+File: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-4-1.pdf Graphic file (type pdf)
+<use /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-4-1.pdf>
+Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-4-1.pdf  used on input line 95.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 [1
 
-{/home/virologie/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/home/virologie/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc} </home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-4-1.pdf>]
+{/home/virologie/.TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{/home/virologie/.TinyTeX/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc} </home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-4-1.pdf>]
 
 [2]
-</home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-1.pdf, id=28, 505.89pt x 505.89pt>
-File: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-1.pdf Graphic file (type pdf)
-<use /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-1.pdf>
-Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-1.pdf  used on input line 136.
+</home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-1.pdf, id=28, 505.89pt x 505.89pt>
+File: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-1.pdf Graphic file (type pdf)
+<use /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-1.pdf>
+Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-1.pdf  used on input line 136.
 (pdftex.def)             Requested size: 469.76265pt x 469.76265pt.
-</home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-2.pdf, id=29, 505.89pt x 505.89pt>
-File: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-2.pdf Graphic file (type pdf)
-<use /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-2.pdf>
-Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-2.pdf  used on input line 137.
+</home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-2.pdf, id=29, 505.89pt x 505.89pt>
+File: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-2.pdf Graphic file (type pdf)
+<use /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-2.pdf>
+Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-2.pdf  used on input line 137.
 (pdftex.def)             Requested size: 469.76265pt x 469.76265pt.
 
 
-[3 </home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-1.pdf>]
+[3 </home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-1.pdf>]
 
-[4 </home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-5-2.pdf>]
-</home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-6-1.pdf, id=50, 469.755pt x 325.215pt>
-File: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-6-1.pdf Graphic file (type pdf)
-<use /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-6-1.pdf>
-Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-6-1.pdf  used on input line 176.
+[4 </home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-5-2.pdf>]
+</home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-6-1.pdf, id=50, 469.755pt x 325.215pt>
+File: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-6-1.pdf Graphic file (type pdf)
+<use /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-6-1.pdf>
+Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-6-1.pdf  used on input line 176.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 
 
-[5 </home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-6-1.pdf>]
-</home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-7-1.pdf, id=65, 469.755pt x 325.215pt>
-File: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-7-1.pdf Graphic file (type pdf)
-<use /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-7-1.pdf>
-Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-7-1.pdf  used on input line 184.
+[5 </home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-6-1.pdf>]
+</home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-7-1.pdf, id=65, 469.755pt x 325.215pt>
+File: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-7-1.pdf Graphic file (type pdf)
+<use /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-7-1.pdf>
+Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-7-1.pdf  used on input line 184.
 (pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
-</home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-8-1.pdf, id=66, 361.35pt x 144.54pt>
-File: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-8-1.pdf Graphic file (type pdf)
-<use /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-8-1.pdf>
-Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-8-1.pdf  used on input line 201.
+</home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-8-1.pdf, id=66, 361.35pt x 144.54pt>
+File: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-8-1.pdf Graphic file (type pdf)
+<use /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-8-1.pdf>
+Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-8-1.pdf  used on input line 201.
 (pdftex.def)             Requested size: 361.34912pt x 144.53963pt.
 
 
-[6 </home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-7-1.pdf>]
+[6 </home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-7-1.pdf>]
 
-[7 </home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-8-1.pdf>]
-</home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-9-1.pdf, id=93, 578.16pt x 144.54pt>
-File: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-9-1.pdf Graphic file (type pdf)
-<use /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-9-1.pdf>
-Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-9-1.pdf  used on input line 225.
+[7 </home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-8-1.pdf>]
+</home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-9-1.pdf, id=93, 578.16pt x 144.54pt>
+File: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-9-1.pdf Graphic file (type pdf)
+<use /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-9-1.pdf>
+Package pdftex.def Info: /home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-9-1.pdf  used on input line 225.
 (pdftex.def)             Requested size: 469.75385pt x 117.43845pt.
-
-Overfull \hbox (27.20233pt too wide) in alignment at lines 227--350
- [] [] [] [] [] [] [] [] [] [] [] 
- []
-
-[8 </home/virologie/pipeline_stage/testOutput2/test_files/figure-latex/unnamed-chunk-9-1.pdf>] [9]
-Overfull \hbox (40.06447pt too wide) in alignment at lines 356--365
- [] [] [] [] [] [] 
- []
-
-
-Overfull \hbox (32.49644pt too wide) in alignment at lines 367--376
- [] [] [] [] [] 
- []
-
-
+[8 </home/virologie/pipeline_stage/testOutput/test_files/figure-latex/unnamed-chunk-9-1.pdf>] [9]
 
 [10] (./test.aux)
  ***********
@@ -635,14 +620,14 @@ LaTeX Warning: There were multiply-defined labels.
  ) 
 Here is how much of TeX's memory you used:
  12786 strings out of 475560
- 200170 string characters out of 5777569
+ 200118 string characters out of 5777569
  2013905 words of memory out of 5000000
  35166 multiletter control sequences out of 15000+600000
  589197 words of font info for 60 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 89i,7n,93p,655b,566s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 89i,7n,93p,654b,566s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </home/virologie/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb></home/virologie/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr10.pfb></home/virologie/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb></home/virologie/.TinyTeX/texmf-dist/fonts/type1/public/lm/lmr17.pfb>
-Output written on test.pdf (10 pages, 236932 bytes).
+Output written on test.pdf (10 pages, 236546 bytes).
 PDF statistics:
  169 PDF objects out of 1000 (max. 8388607)
  133 compressed objects within 2 object streams

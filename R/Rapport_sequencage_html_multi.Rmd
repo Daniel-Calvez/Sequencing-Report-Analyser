@@ -38,49 +38,243 @@ source("./functionPlotsMulti.R")
 ```
 
 ```{r}
-# Download datas #
 OutputDirectory <- params$OutputDirectory
 reference <- params$Reference
-## Fastq sequence file ##
-fastqData <- getAllFastqParseTables(OutputDirectory)
-## Sam pattern files ##
-samData <- getAllSamParseTables(OutputDirectory)
-## Coverage file ##
-coverage <- read.table(paste0(OutputDirectory, "/results/Coverage.bed"), sep = "\t")
-colnames(coverage) <- c("sample", "start", "stop", "depth")
-## consensus sequence ##
-seq_consensus <- read.fasta(paste0(OutputDirectory, "/results/Consensus_Sequence/consensus.fa"), as.string = TRUE)
-## variant SNP file ###
-variant <- read.table(paste0(OutputDirectory, "/python_vcf_result.vcf"), sep = "\t")
+
+
+# Generate table lists
+listOutputs <- list.dirs(OutputDirectory, full.names = TRUE, recursive = FALSE)
+fastqDataList <- list()
+samDataList <- list()
+coverageList <- list()
+variantList <- list()
+
+
+# Instanciate main tables
+fastqData <- list(data.frame(GC_content = integer(), occurence = integer(), patient = character()),
+                  data.frame(read_length = integer(), occurence = integer(), patient = character()),
+                  data.frame(Seq_score = integer(), occurence = integer(), patient = character())) 
+
+samData <- list(data.frame(read = character(), occurence = integer(), patient = character()),
+                data.frame(Map_score = integer(), occurence = integer(), patient = character()),
+                data.frame(read_length = integer(), mapped = integer(), occurence = integer(), patient = character()),
+                data.frame(Seq_score = integer(), occurence = integer(), patient = character()))
+
+variant <- data.frame(V1 = character(), V2 = integer(), V3 = character(),
+                      V4 = character(), V5 = character(), V6 = integer(), 
+                      V7 = character(), V8 = character(), V9 = character(), 
+                      V10 = character(), patient = character())
+
+coverage <- data.frame(sample = character(), start = integer(), 
+                       stop = integer(), depth = integer(), patient = character())
+
+# Useful tables for later about the patients IDs
+patientNumber <- length(listOutputs)
+patientList <- list()
+
+
+# Parse every folder of each patient
+for (outputFolder in listOutputs) {
+  
+  # Get the patient ID (in folder name)
+  patientList[[length(patientList)+1]] <- basename(outputFolder)
+  
+  ## Fastq sequence file ##
+  fastqDataList[[length(fastqDataList)+1]]<- 
+    addPatientID(getAllFastqParseTables(outputFolder), basename(outputFolder))
+  
+  ## Sam pattern files ##
+  samDataList[[length(samDataList)+1]]  <- 
+    addPatientID(getAllSamParseTables(outputFolder), basename(outputFolder))
+  
+  ## Coverage file ##
+  coverageList[[length(coverageList)+1]]  <- 
+    read.table(paste0(outputFolder, "/results/Coverage.bed"), sep = "\t")%>%  mutate(patient = basename(outputFolder))
+  
+  colnames(coverageList[[length(coverageList)]])  <- c("sample", "start", "stop", "depth", "patient")
+
+  ## variant VCF file ###
+  variantList[[length(variantList)+1]]  <- 
+  read.table(paste0(outputFolder, "/python_vcf_result.vcf"), sep = "\t") %>% mutate(patient = basename(outputFolder))
+}
+
+# Aggregate tables from each patient to build plots more easily
+fastqData <- combineFastqTables(fastqDataList)
+samData <- combineSamTables(samDataList)
+variant <- combineVariantTables(variantList)
+coverage <- combineCoverageTable(coverageList)
 ```
 
 # 1. Qualité du séquençage {.tabset}
 
 Cette section traite de la qualité du séquençage des lectures
 
-## Score qualité des reads
-
 ```{r}
-samplePlots <- plotsSequencingSample(fastqData[[3]], fastqData[[2]])
-ggplotly(samplePlots[[1]])
+# These table will contain information to build the plots
+
+# This one for GC score information
+fastqGCTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double(), ecarttype = double())
+
+# This one for the length of the reads
+fastqLengthTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double())
+
+# This one for the quality scores of the reads
+fastqScoreTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double())
+
+# Parse the table for each patient to get the mean and median for each patient
+for(p in patientList){
+  fastqGCTab <- fastqGCTab %>% bind_rows(fastqData[[1]] 
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean( GC_content, occurence),
+                          Mediane = weighted.median(GC_content, occurence), 
+                          ecarttype = sd(GC_content)))
+  fastqLengthTab <- fastqLengthTab %>% bind_rows(fastqData[[2]] 
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean(read_length, occurence),Mediane = weighted.median(read_length, occurence)))
+  
+  fastqScoreTab <- fastqScoreTab %>% bind_rows(fastqData[[3]] 
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean(Seq_score, occurence),Mediane = weighted.median(Seq_score, occurence)))
+}
 ```
 
-## Longueur des reads
+## Taux de GC (plot)
 
 ```{r}
-ggplotly(samplePlots[[2]])
+if(patientNumber <= 10){
+  plots <- fastqQualityPlot(fastqGCTab, fastqLengthTab, fastqScoreTab)
+  ggplotly(plots[[1]])
+  ggplotly(plots[[2]])
+  ggplotly(plots[[3]])
+}else{
+  print("Trop de données, le plot ne peut être affiché")
+}
+
+```
+
+## Longueurs des reads (plot)
+
+```{r}
+
+if(patientNumber <= 10){
+  ggplotly(plots[[2]])
+}else{
+  print("Trop de données, le plot ne peut être affiché")
+}
+
+```
+
+## Score qualité des reads (plot)
+
+```{r}
+
+if(patientNumber <= 10){
+  ggplotly(plots[[3]])
+}else{
+  print("Trop de données, le plot ne peut être affiché")
+}
+
+```
+
+
+## Tableaux
+
+```{r}
+# Print the data tables used for plots 
+fastqGCTab %>% datatable(caption = "Informations sur le taux de GC par patient")
+
+fastqLengthTab %>% datatable(caption = "Informations sur la longueur des reads")
+
+fastqScoreTab %>% datatable(caption = "Informations sur le score qualité des reads")
 ```
 
 # 2. Qualité du mapping sur la référence {.tabset}
 
 Cette section traite de données de qualités générales du mapping des leactures
 
-## Informations générales
+```{r}
+# This table contains information about the which region in mapped or not
+samMapTable <- data.frame(patient = character(), percent = double(), 
+                          read = character(), y_lab = double())
+
+# This table contains information about alignment quality score
+samMapScoreTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double())
+
+# This table contains information about the quality of successully mapped reads
+samScoreTab <- data.frame(patient = character(), Moyenne = double(),
+                            Mediane = double())
+
+# For each patient, extract information from table and aggregate them together in the previously defined ones
+
+for(p in patientList){
+  
+  # Get the percentage of each unmapped parts
+  samMapTable <- samMapTable %>% bind_rows(samData[[1]] %>% filter(patient == p) 
+                 %>% relocate(patient, .before = read)  
+                 %>% filter(read != "total") 
+                 %>% group_by(patient) 
+                 %>% reframe(percent = round(occurence / sum(occurence) * 100, digits = 2), 
+                             read, y_lab = (read == "Mapped")) 
+  )
+  
+  # Get the mean and median mapping score of each patient
+  samMapScoreTab <- samMapScoreTab %>% bind_rows(samData[[2]]
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean(Map_score, occurence),
+                          Mediane = weighted.median(Map_score, occurence)))
+    
+  # Get the mean and median aligned read score of each patient
+  samScoreTab <- samScoreTab %>% bind_rows(samData[[4]]
+                      %>% filter(patient == p) %>% group_by(patient) 
+                      %>% summarise(Moyenne = weighted.mean(Seq_score, occurence),
+                          Mediane = weighted.median(Seq_score, occurence)))
+}
+```
+
+## Graphique des reads mappés
 
 ```{r fig.height = 7, fig.width=7}
-ggplotly(plotsAlignmentMap(samData[[1]]))
-ggplotly(plotReadMapQuality(samData[[2]]))
-ggplotly(plotReadMapSeqScore(samData[[4]]))
+if(patientNumber <= 10){
+  
+  # Generate the plots
+  plots <- samMultiPlots(samMapTable, samMapScoreTab, samScoreTab)
+  ggplotly(plots[[1]])
+}else{
+  print("Too much patients to display plot")
+}
+```
+
+## Graphique des scores d'alignement
+
+```{r fig.height = 7, fig.width=7}
+if(patientNumber <= 10){
+  ggplotly(plots[[2]])
+}else{
+  print("Too much patients to display plot")
+}
+```
+
+## Graphique des scores qualité des reads mappés
+
+```{r fig.height = 7, fig.width=7}
+if(patientNumber <= 10){
+  ggplotly(plots[[3]])
+}else{
+  print("Too much patients to display plot")
+}
+```
+
+## Tableaux d'informations générales
+
+```{r}
+# Display tables
+samMapTable[,c("patient","percent", "read")] %>% datatable(caption = "Taux de reads mappés")
+samMapScoreTab %>% datatable(caption = "Données sur le score d'alignement par patient")
+samScoreTab %>% datatable(caption = "Données sur le score qualité des reads alignées par patient")
 ```
 
 ## Longueurs des reads mappés
@@ -92,59 +286,55 @@ ceux qui le sont
 ggplotly(plotReadMapLength(samData[[3]]))
 ```
 
-## Couverture et profondeur du séquençage
+# Couverture et profondeur {.tabset}
 
 Cette section traite de la profondeur et de la couverture du séquençage
 
+## Graphique couverture
+
 ```{r}
-ggplotly(plotCoverage(coverage))
+if(patientNumber<=5){
+  coverageMultiPlot(coverage[[1]])
+}else{
+  print("Trop de données, le plot ne peut être affiché")
+}
 ```
 
-## Régions séquencées indéterminées
+## Tableau couverture
+
+```{r}
+#Show tables
+coverage[[1]] %>% group_by(patient) %>% summarise(Moyenne = mean(depth), Mediane = median(depth), EcartType = sd(depth)) %>% datatable(caption = "Données sur la couverture de la référence par patient")
+```
+
+## Graphique des régions séquencées indéterminées
 
 Ce graphique montre en rouge les régions indeterminées, c'est à dire couverte par aucune séquence
 
 ```{r fig.height = 2, fig.width = 5}
 # Rectangular plot that shows regions with 0 coverage
-unknownRegions(seq_consensus)
+noCoverage <- coverage[[1]] %>% filter(depth == 0)
+percentCovered <- noCoverage %>% group_by(patient) %>% summarise(percentage = round(sum(percentage), digits = 2))
+percentCovered <- percentCovered$percentage %>% mean()
+# Show a different color for each patient if there is 8 or less and show the table
+if(patientNumber <= 8){ 
+  ggplotly(unknownRegionsMulti(noCoverage, percentCovered))
+}else{ # Else print every patient as red and do not show the table
+  noCoverage <- coverage[[2]] %>% filter(depth == 0)
+  ggplotly(unknownRegionsMulti(noCoverage, percentCovered))
+}
+
 ```
 
-# 3. Analyse du taux de GC {.tabset}
 
-Cette section analyse le taux de GC des lectures et les compare à celui de la référence
+## Tableau des régions séquencées indéterminées
 
-## Graphique
-
-```{r}
-plots <- plotGC(fastqData[[1]], reference)  
-ggplotly(plots[[1]])
+```{r fig.height = 2, fig.width = 5}
+# Table plot that shows information about regions with 0 coverage
+ noCoverage %>% mutate(percentage = round(percentage,2)) %>% datatable(caption = "Reads non amppés par patient")
 ```
 
-## Comparaison statistique
-
-```{r}
-datatable(plots[[2]])
-```
-
-## Resultat du test Kolmogorov-Smirnov
-
-```{r}
-datatable(plots[[3]])
-```
-
-## Stats du test Student
-
-```{r}
-datatable(plots[[4]])
-```
-
-## Intervalle de confiance
-
-```{r}
-datatable(plots[[5]])
-```
-
-# 4. Variants détectés {.tabset}
+# 3. Variants détectés {.tabset}
 
 Cette section est composée d'un graphe affichant les lieux ou des variants ont 
 été trouvés, acompagné d'un tableau contenant de nombreux détails
@@ -152,12 +342,40 @@ Cette section est composée d'un graphe affichant les lieux ou des variants ont
 ## Graphique
 
 ```{r fig.height = 2, fig.width = 8}
-content <- vcfAnalysis(variant, reference) 
-ggplotly(content[[2]])
+# Check if there is 10 or less patient
+if(patientNumber <= 10){
+  # If there is display each patient with a different color and show the table
+  content <- vcfMultiAnalysis(variant, reference)
+  ggplotly(content[[2]])
+}else{
+  # Show only one color otherwise
+  content <- vcfSingleAnalysis(variant , reference) 
+  ggplotly(content[[2]])
+}
 ```
 
 ## Tableaux des mutations
 
 ```{r}
-datatable(content[[1]])
+content[[1]] %>% datatable(caption = "Variants détectés par patient")
+```
+
+# 4. Information générales
+
+```{r}
+# Store the variant number per patient
+variantNumberPerPatient <- variant %>% group_by(patient) %>% summarise(nbVariants = length(patient))
+
+# Make inner joins with multiple information tables (about GC, read quality, map quality, coverage and mapping)
+generalTable <- variantNumberPerPatient %>% inner_join(y = fastqGCTab) %>% inner_join(fastqScoreTab, by = "patient") %>% inner_join(samMapScoreTab, by="patient") %>% inner_join(samMapTable %>% filter(read == "Mapped"), by = "patient")
+
+# Renames column
+colnames(generalTable) <- c("patient", "NbVariants", "ScoreGCMoyen", "ScoreGCMedian", "EcartTypeGC", "ScoreQualReadMoyen", "ScoreQualReadMedian", "ScoreQualAlignMoyen", "ScoreQualAlignMedian", "MapPercent", "temp1", "temp2")
+
+# remove unnecessary columns
+generalTable <- generalTable %>% select(-c("temp1", "temp2"))
+
+# Show the table
+generalTable[,c(1,2,3,4,5,6)] %>% datatable(caption = "Première table d'informations générales")
+generalTable[,c(1,7,8,9,10)] %>% datatable(caption = "Seconde table d'informations générales")
 ```

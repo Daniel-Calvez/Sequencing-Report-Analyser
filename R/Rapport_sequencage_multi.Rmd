@@ -97,7 +97,7 @@ for (outputFolder in listOutputs) {
 
   ## variant VCF file ###
   variantList[[length(variantList)+1]]  <- 
-    read.table(paste0(outputFolder, "/python_vcf_result.vcf"), sep = "\t") %>% mutate(patient = basename(outputFolder))
+  read.table(paste0(outputFolder, "/python_vcf_result.vcf"), sep = "\t") %>% mutate(patient = basename(outputFolder))
 }
 
 # Aggregate tables from each patient to build plots more easily
@@ -234,7 +234,11 @@ Cette section traite de la profondeur et de la couverture du séquençage
 ```{r}
 
 ##Coverage plot , won't show if too much patients
-if(patientNumber<=5) print(coverageMultiPlot(coverage[[1]]))
+if(patientNumber<=5){
+  print(coverageMultiPlot(coverage[[1]]))
+}else{
+  print("Trop de données, le plot ne peut être affiché")
+}
 
 #Show tables
 coverage[[1]] %>% group_by(patient) %>% summarise(Moyenne = mean(depth), Mediane = median(depth), EcartType = sd(depth)) %>% kable(caption = "Informations sur la couverture du génome par patient") %>% kable_paper(latex_options = c("hold_position"))
@@ -256,7 +260,7 @@ percentCovered <- percentCovered$percentage %>% mean()
 # Show a different color for each patient if there is 8 or less and show the table
 if(patientNumber <= 8){ 
   print(unknownRegionsMulti(noCoverage, percentCovered))
-  noCoverage %>% kable(caption = "Mapping and coverage information") %>% kable_paper(latex_options = c("hold_position"))
+  noCoverage %>% mutate(percentage = round(percentage,2)) %>% kable(caption = "Mapping and coverage information") %>% kable_paper(latex_options = c("hold_position"))
 }else{ # Else print every patient as red and do not show the table
   noCoverage <- coverage[[2]] %>% filter(depth == 0)
   print(unknownRegionsMulti(noCoverage, percentCovered))
