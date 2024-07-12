@@ -43,13 +43,16 @@ source("./functionPlotsMulti.R")
 OutputDirectory <- params$OutputDirectory
 reference <- params$Reference
 
+
+# Generate table lists
 listOutputs <- list.dirs(OutputDirectory, full.names = TRUE, recursive = FALSE)
 fastqDataList <- list()
 samDataList <- list()
 coverageList <- list()
-seq_consensusList <- list()
 variantList <- list()
 
+
+# Instanciate main tables
 fastqData <- list(data.frame(GC_content = integer(), occurence = integer(), patient = character()),
                   data.frame(read_length = integer(), occurence = integer(), patient = character()),
                   data.frame(Seq_score = integer(), occurence = integer(), patient = character())) 
@@ -64,10 +67,18 @@ variant <- data.frame(V1 = character(), V2 = integer(), V3 = character(),
                       V7 = character(), V8 = character(), V9 = character(), 
                       V10 = character(), patient = character())
 
+coverage <- data.frame(sample = character(), start = integer(), 
+                       stop = integer(), depth = integer(), patient = character())
+
+# Useful tables for later about the patients IDs
 patientNumber <- length(listOutputs)
 patientList <- list()
+
+
+# Parse every folder of each patient
 for (outputFolder in listOutputs) {
   
+  # Get the patient ID (in folder name)
   patientList[[length(patientList)+1]] <- basename(outputFolder)
   
   ## Fastq sequence file ##
@@ -83,21 +94,17 @@ for (outputFolder in listOutputs) {
     read.table(paste0(outputFolder, "/results/Coverage.bed"), sep = "\t")%>%  mutate(patient = basename(outputFolder))
   
   colnames(coverageList[[length(coverageList)]])  <- c("sample", "start", "stop", "depth", "patient")
-  
- 
-  ## consensus sequence ##
-  seq_consensusList[[length(seq_consensusList)+1]]  <- 
-    list(read.fasta(paste0(outputFolder, "/results/Consensus_Sequence/consensus.fa"), as.string = TRUE , seqonly = T), basename(outputFolder))
-
 
   ## variant VCF file ###
   variantList[[length(variantList)+1]]  <- 
     read.table(paste0(outputFolder, "/python_vcf_result.vcf"), sep = "\t") %>% mutate(patient = basename(outputFolder))
 }
 
+# Aggregate tables from each patient to build plots more easily
 fastqData <- combineFastqTables(fastqDataList)
 samData <- combineSamTables(samDataList)
 variant <- combineVariantTables(variantList)
+coverage <- combineCoverageTable(coverageList)
 ```
 
 ```{=tex}
@@ -106,15 +113,21 @@ variant <- combineVariantTables(variantList)
 ```
 
 ```{r}
+# These table will contain information to build the plots
+
+# This one for GC score information
 fastqGCTab <- data.frame(patient = character(), Moyenne = double(),
                             Mediane = double(), ecarttype = double())
 
+# This one for the length of the reads
 fastqLengthTab <- data.frame(patient = character(), Moyenne = double(),
                             Mediane = double())
 
+# This one for the quality scores of the reads
 fastqScoreTab <- data.frame(patient = character(), Moyenne = double(),
                             Mediane = double())
 
+# Parse the table for each patient to get the mean and median for each patient
 for(p in patientList){
   fastqGCTab <- fastqGCTab %>% bind_rows(fastqData[[1]] 
                       %>% filter(patient == p) %>% group_by(patient) 
@@ -129,11 +142,17 @@ for(p in patientList){
                       %>% filter(patient == p) %>% group_by(patient) 
                       %>% summarise(Moyenne = weighted.mean(Seq_score, occurence),Mediane = weighted.median(Seq_score, occurence)))
 }
+# Only show the plot for 10 patient max or else there will be too much information
 if(patientNumber <= 10){
   plots <- fastqQualityPlot(fastqGCTab, fastqLengthTab, fastqScoreTab)
   ggarrange(plots[[1]], plots[[2]], plots[[3]])
 }
+# Print the data tables used for plots 
 fastqGCTab %>% kable(caption = "Informations sur le score qualité des patients") %>% kable_paper(latex_options = c("hold_position"))
+
+fastqLengthTab %>% kable(caption = "Informations sur le score qualité des patients") %>% kable_paper(latex_options = c("hold_position"))
+
+fastqScoreTab %>% kable(caption = "Informations sur le score qualité des patients") %>% kable_paper(latex_options = c("hold_position"))
 ```
 
 \pagebreak
@@ -145,41 +164,55 @@ Cette section traite de données de qualités générales du mapping des lecture
 ```
 ```{r fig.height = 7, fig.width=7}
 
-samMapTable <- data.frame(patient = character(),percent = double(), read = character())
+# This table contains information about the which region in mapped or not
+samMapTable <- data.frame(patient = character(), percent = double(), 
+                          read = character(), y_lab = double())
 
-
+# This table contains information about alignment quality score
 samMapScoreTab <- data.frame(patient = character(), Moyenne = double(),
                             Mediane = double())
 
+# This table contains information about the quality of successully mapped reads
 samScoreTab <- data.frame(patient = character(), Moyenne = double(),
                             Mediane = double())
 
-
+# For each patient, extract information from table and aggregate them together in the previously defined ones
 for(p in patientList){
   
+  # Get the percentage of each unmapped parts
   samMapTable <- samMapTable %>% bind_rows(samData[[1]] %>% filter(patient == p) 
                  %>% relocate(patient, .before = read)  
                  %>% filter(read != "total") 
                  %>% group_by(patient) 
-                 %>% reframe(percent = round(occurence / sum(occurence) * 100, digits = 2), read) 
+                 %>% reframe(percent = round(occurence / sum(occurence) * 100, digits = 2), 
+                             read, y_lab = (read == "Mapped")) 
   )
   
+  # Get the mean and median mapping score of each patient
   samMapScoreTab <- samMapScoreTab %>% bind_rows(samData[[2]]
                       %>% filter(patient == p) %>% group_by(patient) 
                       %>% summarise(Moyenne = weighted.mean(Map_score, occurence),
                           Mediane = weighted.median(Map_score, occurence)))
-  
+    
+  # Get the mean and median aligned read score of each patient
   samScoreTab <- samScoreTab %>% bind_rows(samData[[4]]
                       %>% filter(patient == p) %>% group_by(patient) 
                       %>% summarise(Moyenne = weighted.mean(Seq_score, occurence),
                           Mediane = weighted.median(Seq_score, occurence)))
 }
 
+# If there is too much patient the plots won't be shown
 if(patientNumber <= 10){
+  
+  # Generate the plots
   plots <- samMultiPlots(samMapTable, samMapScoreTab, samScoreTab)
-  ggarrange(plots[[1]], plots[[2]], plots[[3]])
+  print(plots[[1]])
+  ggarrange(plots[[2]], plots[[3]])
+}else{
+  print("Too much patients to display plot")
 }
 
+# Display tables
 samMapTable[,c("patient","percent")] %>% kable(caption = "Informations sur le nombre de reads mappés par patients") %>% kable_paper(latex_options = c("hold_position"))
 samMapScoreTab %>% kable(caption = "Informations sur le score d'alignement par patient") %>% kable_paper(latex_options = c("hold_position"))
 samScoreTab %>% kable(caption = "Informations sur le score qualité des séquences mappées par patient") %>% kable_paper(latex_options = c("hold_position"))
@@ -187,6 +220,7 @@ samScoreTab %>% kable(caption = "Informations sur le score qualité des séquenc
 ```
 
 ```{r}
+# Plot to compare the length of mapped and unmapped reads
 plotReadMapLength(samData[[3]])
 ```
 
@@ -198,9 +232,14 @@ Cette section traite de la profondeur et de la couverture du séquençage
 
 ```
 ```{r}
-##Coverage plot
-plotCoverage(coverage)
+
+##Coverage plot , won't show if too much patients
+if(patientNumber<=5) print(coverageMultiPlot(coverage[[1]]))
+
+#Show tables
+coverage[[1]] %>% group_by(patient) %>% summarise(Moyenne = mean(depth), Mediane = median(depth), EcartType = sd(depth)) %>% kable(caption = "Informations sur la couverture du génome par patient") %>% kable_paper(latex_options = c("hold_position"))
 ```
+
 
 ```{=tex}
 \subsection{2.2. Régions séquencées indéterminées}
@@ -209,41 +248,25 @@ Ce graphique montre en rouge les régions indeterminées, c'est à dire couverte
 
 ```
 ```{r fig.height = 2, fig.width = 5}
+
 # Rectangular plot that shows regions with 0 coverage
-unknownRegions(seq_consensus)
+noCoverage <- coverage[[1]] %>% filter(depth == 0)
+percentCovered <- noCoverage %>% group_by(patient) %>% summarise(percentage = round(sum(percentage), digits = 2))
+percentCovered <- percentCovered$percentage %>% mean()
+# Show a different color for each patient if there is 8 or less and show the table
+if(patientNumber <= 8){ 
+  print(unknownRegionsMulti(noCoverage, percentCovered))
+  noCoverage %>% kable(caption = "Mapping and coverage information") %>% kable_paper(latex_options = c("hold_position"))
+}else{ # Else print every patient as red and do not show the table
+  noCoverage <- coverage[[2]] %>% filter(depth == 0)
+  print(unknownRegionsMulti(noCoverage, percentCovered))
+}
+
 ```
 
 \pagebreak
 ```{=tex}
-\section{3. Analyse du taux de GC}
-
-Cette section analyse le taux de GC des lectures et les compare à celui de la référence
-
-```
-```{r}
-plots <- plotGC(fastqData[[1]], reference)  
-plots[[1]]
-```
-
-```{r}
-plots[[2]] %>% kable(caption = "Statistics comparison between reads and reference") %>% kable_paper(latex_options = c("hold_position"))
-```
-
-```{r}
-plots[[3]] %>% kable(caption = "Kolmogorov-Smirnov test results") %>% kable_paper(latex_options = c("hold_position"))
-```
-
-```{r}
-plots[[4]] %>% kable(caption = "Stats from Student test") %>% kable_paper(latex_options = c("hold_position"))
-```
-
-```{r}
-plots[[5]] %>% kable(caption = "Confidence interval from Student test") %>% kable_paper(latex_options = c("HOLD_position"))
-```
-
-\pagebreak
-```{=tex}
-\section{4. Variants détectés}
+\section{3. Variants détectés}
 
 Cette section est composée d'un graphe affichant les lieux ou des variants ont 
 été trouvés, acompagné d'un tableau contenant de nombreux détails
@@ -251,25 +274,40 @@ Cette section est composée d'un graphe affichant les lieux ou des variants ont
 
 ```
 ```{r fig.height = 2, fig.width = 8}
-content <- vcfAnalysis(variant, reference) 
-content[[2]] 
-```
-
-```{r}
-content[[1]] %>% kable(caption = "Variants detected") %>% kable_paper(latex_options = c("hold_position"))
+# Check if there is 10 or less patient
+if(patientNumber <= 10){
+  # If there is display each patient with a different color and show the table
+  content <- vcfMultiAnalysis(variant, reference)
+  print(content[[2]])
+  content[[1]] %>% kable(caption = "Variants detected") %>% kable_paper(latex_options = c("hold_position"))
+}else{
+  # Show only one color otherwise
+  content <- vcfSingleAnalysis(variant , reference) 
+  print(content[[2]])
+}
 ```
 
 ```{=tex}
-\section{5. Résultats sur plusieurs patients}
+\section{4. Table d'informations générales par patient}
 
-Cette section contient des informations sur les résultats sur plusieurs patients
+Cette section affiche des informations générales pour chaque patient
 
 ```
-```{=tex}
-\subsection{Tableaux de données}
 
-Cette section est composée d'un graphe affichant les lieux ou des variants ont 
-été trouvés, acompagné d'un tableau contenant de nombreux détails
+```{r fig.height = 2, fig.width = 8}
+# Store the variant number per patient
+variantNumberPerPatient <- variant %>% group_by(patient) %>% summarise(nbVariants = length(patient))
 
+# Make inner joins with multiple information tables (about GC, read quality, map quality, coverage and mapping)
+generalTable <- variantNumberPerPatient %>% inner_join(y = fastqGCTab) %>% inner_join(fastqScoreTab, by = "patient") %>% inner_join(samMapScoreTab, by="patient") %>% inner_join(samMapTable %>% filter(read == "Mapped"), by = "patient")
 
+# Renames column
+colnames(generalTable) <- c("patient", "NbVariants", "ScoreGCMoyen", "ScoreGCMedian", "EcartTypeGC", "ScoreQualReadMoyen", "ScoreQualReadMedian", "ScoreQualAlignMoyen", "ScoreQualAlignMedian", "MapPercent", "temp1", "temp2")
+
+# remove unnecessary columns
+generalTable <- generalTable %>% select(-c("temp1", "temp2"))
+
+# Show the table
+generalTable[,c(1,2,3,4,5,6)] %>% kable(caption = "First general information table") %>% kable_paper(latex_options = c("hold_position"))
+generalTable[,c(1,7,8,9,10)] %>% kable(caption = "Second general information table") %>% kable_paper(latex_options = c("hold_position"))
 ```

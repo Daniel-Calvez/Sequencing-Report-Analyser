@@ -417,6 +417,12 @@ getMeanGC <- function(sequence){
 
 # Function to create plots and tables from variant calling ---------------------
 vcfAnalysis <- function(variants, reference){
+  #' This function takes a VCF table and its reference to generate a more readable table
+  #' with a plot to visualize their location
+  #' @param variants The table of each variant associated with patients
+  #' @param reference The reference sequence of the vcf table
+  #' @return A Dataframe containing VCF information and a plot to visualize it
+  
   
   # Creation of the table containing all the raw readable data
   info <- unlist(str_split(unique(variants$V9), ":"))
